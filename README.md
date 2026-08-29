@@ -3,6 +3,11 @@
 <p align="center">
   <em>A beautiful, playable piano in the browser with real sampled sounds, falling notes, and MIDI support.</em>
 </p>
+---
+<div align="center">
+  <img src="/public/piano.png" width="1000" />
+</div>
+---
 
 <p align="center">
   <a href="#features">Features</a> •
