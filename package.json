@@ -1,0 +1,44 @@
+{
+  "name": "nocturne",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A beautiful, playable piano in the browser with real sampled sounds, falling notes, and MIDI support.",
+  "keywords": ["piano", "music", "midi", "web-audio", "react", "canvas"],
+  "author": "",
+  "license": "MIT",
+  "homepage": "https://nocturne.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/nocturne.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/nocturne/issues"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@tonejs/midi": "^2.0.28",
+    "lucide-react": "^1.34.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "smplr": "^1.0.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "oxlint": "^1.79.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.2"
+  }
+}

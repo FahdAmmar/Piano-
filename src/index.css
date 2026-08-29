@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* Manual dark/light toggle via a class, instead of only prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Semantic tokens resolve through the CSS variables below, so light/dark
+     just swap the variable values instead of duplicating utility classes. */
+  --color-base: var(--nocturne-base);
+  --color-surface: var(--nocturne-surface);
+  --color-surface-raised: var(--nocturne-surface-raised);
+  --color-key-white: var(--nocturne-key-white);
+  --color-ink: var(--nocturne-ink);
+  --color-ink-muted: var(--nocturne-ink-muted);
+  --color-line: var(--nocturne-line);
+
+  /* Fixed accents: warm ember for the right hand, cool violet for the left. */
+  --color-ember: #f2a65a;
+  --color-ember-soft: #fbc98a;
+  --color-violet: #7c6cf0;
+  --color-violet-soft: #a79bff;
+}
+
+.dark {
+  --nocturne-base: #0a0912;
+  --nocturne-surface: #131120;
+  --nocturne-surface-raised: #1b1830;
+  --nocturne-key-white: #e9e5df;
+  --nocturne-ink: #f5f3f0;
+  --nocturne-ink-muted: #9c97ac;
+  --nocturne-line: rgb(245 243 240 / 8%);
+}
+
+.light {
+  --nocturne-base: #fbfaf7;
+  --nocturne-surface: #f1eee8;
+  --nocturne-surface-raised: #ffffff;
+  --nocturne-key-white: #ffffff;
+  --nocturne-ink: #1b1825;
+  --nocturne-ink-muted: #635c74;
+  --nocturne-line: rgb(27 24 37 / 10%);
+}
+
+body {
+  font-family: var(--font-sans);
+}
