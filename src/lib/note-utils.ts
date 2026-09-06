@@ -47,3 +47,9 @@ export function midiToLabel(midi: number): string {
   const octave = Math.floor(midi / 12) - 1
   return `${name}${octave}`
 }
+
+/** For on-key labels: full name on C (an anchor point), just the letter elsewhere. */
+export function midiToKeyDisplayName(midi: number): string {
+  const name = NOTE_NAMES[midi % 12]
+  return name === "C" ? midiToLabel(midi) : name
+}

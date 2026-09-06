@@ -31,10 +31,14 @@ export function PianoStage({ mode }: PianoStageProps) {
   const [selectedSongId, setSelectedSongId] = useState(SONGS[0].id)
   const [songStyle, setSongStyle] = useState<SongPlayStyle>("wait")
   const [importedSongs, setImportedSongs] = useState<Song[]>([])
+   const [loopEnabled] = useState(false)
+   const [loopStart] = useState(0)
+   const [loopEnd] = useState(0)
+   const [showNoteNames] = useState(false)
 
   const allSongs = [...SONGS, ...importedSongs]
   const song = allSongs.find((s) => s.id === selectedSongId) ?? SONGS[0]
-  const songPlayback = useSongPlayback({ song, enabled: mode === "song", style: songStyle })
+  const songPlayback = useSongPlayback({ song, enabled: mode === "song", style: songStyle, loopEnabled, loopStart, loopEnd })
 
   const handleSongImported = useCallback((imported: Song) => {
     setImportedSongs((prev) => [...prev, imported])
@@ -167,12 +171,13 @@ export function PianoStage({ mode }: PianoStageProps) {
 
       <div className="h-32 shrink-0 overflow-x-auto sm:h-40 md:h-48">
         <div className="h-full min-w-[1400px]">
-          <PianoKeyboard
-            pressedMidi={pressedMidi}
-            activeMidis={activeMidis}
-            onNoteOn={handleNoteOn}
-            onNoteOff={handleNoteOff}
-          />
+<PianoKeyboard
+             pressedMidi={pressedMidi}
+             activeMidis={activeMidis}
+             showLabels={showNoteNames}
+             onNoteOn={handleNoteOn}
+             onNoteOff={handleNoteOff}
+           />
         </div>
       </div>
     </main>

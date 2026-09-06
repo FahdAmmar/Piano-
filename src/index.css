@@ -23,9 +23,11 @@
   --color-ember-soft: #fbc98a;
   --color-violet: #7c6cf0;
   --color-violet-soft: #a79bff;
+  --color-danger: #ef4444;
 }
 
 .dark {
+  color-scheme: dark;
   --nocturne-base: #0a0912;
   --nocturne-surface: #131120;
   --nocturne-surface-raised: #1b1830;
@@ -36,6 +38,7 @@
 }
 
 .light {
+  color-scheme: light;
   --nocturne-base: #fbfaf7;
   --nocturne-surface: #f1eee8;
   --nocturne-surface-raised: #ffffff;
@@ -47,4 +50,39 @@
 
 body {
   font-family: var(--font-sans);
+}
+
+/* Range inputs (the volume slider) styled explicitly rather than relying on
+   each browser's own default track appearance, which can look inconsistent
+   or too dark against a light theme. */
+input[type="range"] {
+  appearance: none;
+  background: transparent;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--color-line);
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border-radius: 9999px;
+  background: var(--color-ember);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--color-line);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--color-ember);
+  cursor: pointer;
 }

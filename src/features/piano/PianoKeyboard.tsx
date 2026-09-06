@@ -5,6 +5,7 @@ import { PianoKey } from "./PianoKey"
 interface PianoKeyboardProps {
   pressedMidi: ReadonlySet<number>
   activeMidis?: ReadonlySet<number>
+  showLabels: boolean
   onNoteOn: (midi: number) => void
   onNoteOff: (midi: number) => void
 }
@@ -12,6 +13,7 @@ interface PianoKeyboardProps {
 export const PianoKeyboard = memo(function PianoKeyboard({
   pressedMidi,
   activeMidis,
+  showLabels,
   onNoteOn,
   onNoteOff,
 }: PianoKeyboardProps) {
@@ -27,6 +29,7 @@ export const PianoKeyboard = memo(function PianoKeyboard({
             isBlack={false}
             pressed={pressedMidi.has(key.midi)}
             active={activeMidis?.has(key.midi) ?? false}
+            showLabel={showLabels}
             onNoteOn={onNoteOn}
             onNoteOff={onNoteOff}
           />
@@ -43,6 +46,7 @@ export const PianoKeyboard = memo(function PianoKeyboard({
             isBlack
             pressed={pressedMidi.has(key.midi)}
             active={activeMidis?.has(key.midi) ?? false}
+            showLabel={showLabels}
             onNoteOn={onNoteOn}
             onNoteOff={onNoteOff}
           />

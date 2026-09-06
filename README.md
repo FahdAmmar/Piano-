@@ -1,203 +1,123 @@
-# 🎹 Nocturne
+# Nocturne
 
-<p align="center">
-  <em>A beautiful, playable piano in the browser with real sampled sounds, falling notes, and MIDI support.</em>
-</p>
----
-<div align="center">
-  <img src="/public/piano.png" width="1000" />
-</div>
----
+A playable piano in the browser: real sampled piano sound (plus electric
+piano and organ), a glowing key-press effect, and a "Learn a Song" mode
+where falling note blocks guide you through a piece. Practice at your own
+pace in **Wait Mode** — time waits for you to hit the right key, so anyone
+can complete a song — or take on **Scroll Mode** for a real, scored timing
+challenge once a piece feels easy. Record what you play and take it with
+you as a `.mid` file; your progress and any imported songs are remembered
+for next time.
 
-<p align="center">
-  <a href="#features">Features</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#project-structure">Structure</a> •
-  <a href="#tech-stack">Tech Stack</a> •
-  <a href="#roadmap">Roadmap</a>
-</p>
-
----
-
-## ✨ Features
-
-| Feature | Description |
-| --------- | ------------- |
-| 🎵 **Real Piano Sounds** | High-quality sampled grand piano via [smplr](https://github.com/danigb/smplr) |
-| ✨ **Glowing Key Effects** | Beautiful canvas-based particle effects and glow trails |
-| 🎼 **Learn a Song Mode** | Falling note blocks guide you through 10 built-in pieces |
-| ⏸️ **Wait Mode** | Time pauses until you hit the right key — perfect for beginners |
-| 🎯 **Scroll Mode** | Real-time scoring for a timing challenge |
-| 🎹 **MIDI Keyboard Support** | Plug in any MIDI keyboard — auto-detected via Web MIDI API |
-| 📥 **Import MIDI Files** | Bring your own `.mid` files with automatic hand splitting |
-| 🌓 **Dark/Light Themes** | Elegant design with warm ember (right hand) and cool violet (left hand) |
-| 📱 **Responsive Design** | Works on desktop, tablet, and mobile with touch support |
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- **Node.js** 18+
-- **npm** or **pnpm**
-
-### Installation
+## Run it
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/nocturne.git
-
-# Navigate to project
-cd nocturne
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
-Open the printed local URL (usually `http://localhost:5173`).
+Open the printed local URL. Piano samples are fetched from a public CDN the
+first time you play a note, so the tab needs an internet connection.
 
-> 🎹 Piano samples are fetched from a CDN on first play — an internet connection is required.
+## Play
 
----
+- **Mouse / touch**: click or tap any key — or drag across several for a
+  glissando, just like running a finger down real piano keys.
+- **Computer keyboard**: `Z S X D C V G B H N J M` play the white/black keys
+  of one octave, `Q 2 W 3 E R 5 T 6 Y 7 U` continue into the next octave.
+  `[` and `]` shift the whole mapping down/up an octave. A full reference
+  is one click away — the keyboard icon in the top bar.
+- **A real MIDI keyboard**: plug one in and play — Nocturne picks it up
+  automatically over the Web MIDI API (Chrome/Edge; not supported in Safari)
+  and shows a small "connected" badge. Velocity comes through for dynamics,
+  and a hardware sustain pedal (Control Change 64) works too.
+- **Instrument** (top right): switch between Grand Piano, Electric Piano,
+  Organ, Harpsichord, Celesta, and Strings.
+- **Note names** (top right, tag icon): label the keys — the full name
+  (e.g. "C4") on every C as an anchor, just the letter elsewhere.
+- **Volume** (top right): a standard 0–100% slider.
+- **Sustain pedal**: hold Space (or a MIDI pedal) to sustain — notes keep
+  ringing after you release the key, just like a real pedal, until released.
+- **Metronome** (top left): toggle a click with adjustable BPM (40–240),
+  scheduled on the audio clock for accurate timing, with a visual beat pulse.
+- On phones and tablets, each key press gives a brief haptic tick where the
+  browser supports it.
+- **Free Play / Learn a Song** (top bar): switch between playing freely and
+  practicing a piece.
 
-## 🎮 Usage
+### Learn a Song mode
 
-### Controls
+- **Song picker**: choose from fourteen built-in pieces across four groups —
+  **Beginner** (Hot Cross Buns, Mary Had a Little Lamb, Frère Jacques, Row
+  Row Row Your Boat, Twinkle Twinkle Little Star), **Intermediate** (Happy
+  Birthday to You, Ode to Joy, Jingle Bells, Amazing Grace), **Advanced**
+  (Für Elise — opening, with a black-key trill), and **Two Hands** (Twinkle
+  Twinkle, Ode to Joy, Mary Had a Little Lamb, and Jingle Bells, each with a
+  simple left-hand bass part — colored ember for right / violet for left).
+  Songs you've completed show a ✓ (and your best Scroll Mode accuracy, if
+  any) right in the list.
+- **Import MIDI**: bring your own `.mid` file. Multi-track files map the
+  first track to the right hand and the rest to the left; single-track files
+  split by pitch around middle C. Imported songs are saved in the browser
+  (`localStorage`) so they're still there next time you open the app; a
+  "Clear imports" link appears once you have at least one.
+- **Wait / Scroll toggle**: Wait Mode pauses time at each note (or two-hand
+  chord) until you play it correctly. Scroll Mode runs in real time — a note
+  counts as a hit only within ~0.3s of its exact moment, and you get a live
+  accuracy score.
+- **Loop**: repeat just a note range (e.g. notes 5–12) instead of the whole
+  piece — set the start/end and it loops there in either style, so you can
+  drill a hard passage without replaying everything before it.
 
-| Input Method | How to Use |
-| -------------- | ------------ |
-| 🖱️ **Mouse/Touch** | Click or tap any key |
-| ⌨️ **Computer Keyboard** | `Z S X D C V G B H N J M` (white/black keys), `Q 2 W 3 E R 5 T 6 Y 7 U` (next octave) |
-| 🎹 **MIDI Keyboard** | Plug in via USB — auto-detected. Use `[` / `]` to shift octaves |
+### Recording
 
-### Learning a Song
+The record button (top-left of the piano) works in either mode. Stop it and
+a "Download MIDI" button appears with your performance, ready to open in any
+DAW or notation app, or re-import back into Nocturne.
 
-1. Click **"Learn a Song"** in the top bar
-2. Select from **10 built-in pieces** across skill levels:
-   - 🟢 **Beginner**: Hot Cross Buns, Mary Had a Little Lamb, Frère Jacques, Row Row Row Your Boat, Twinkle Twinkle Little Star
-   - 🟡 **Intermediate**: Happy Birthday to You, Ode to Joy, Jingle Bells, Amazing Grace
-   - 🔴 **Advanced**: Für Elise (opening)
-   - 🤝 **Two Hands**: Twinkle Twinkle, Ode to Joy (with bass accompaniment)
-3. Toggle between **Wait Mode** (learn) and **Scroll Mode** (challenge)
-4. Or import your own `.mid` file!
-
----
-
-## 📁 Project Structure
+## Project structure
 
 ```
-nocturne/
-├── src/
-│   ├── data/                    # 📚 Song library (10 built-in pieces)
-│   │   ├── songs.ts
-│   │   └── demoSong.ts
-│   ├── lib/                     # 🔧 Core utilities (no React)
-│   │   ├── piano-audio.ts       # Audio engine & sampling
-│   │   ├── keyboard-map.ts      # Key binding mappings
-│   │   ├── midi-import.ts       # MIDI file parser
-│   │   ├── note-utils.ts        # Note conversion utilities
-│   │   └── song-builder.ts      # Song data structures
-│   ├── hooks/                   # 🪝 App-level hooks
-│   │   └── theme.ts
-│   ├── features/
-│   │   └── piano/               # 🎹 Piano feature module
-│   │       ├── PianoStage.tsx    # Main orchestrator
-│   │       ├── PianoKeyboard.tsx # Keybed component
-│   │       ├── PianoKey.tsx      # Individual key
-│   │       ├── NoteLane.tsx      # Canvas: falling notes & particles
-│   │       ├── TopBar.tsx        # Navigation bar
-│   │       ├── SongPicker.tsx    # Song selection UI
-│   │       ├── SongStyleToggle.tsx # Wait/Scroll toggle
-│   │       ├── MidiImportButton.tsx # Import .mid files
-│   │       ├── engine/           # 🎨 Canvas particle system
-│   │       │   └── particles.ts
-│   │       └── hooks/            # 🎹 Piano-specific hooks
-│   │           ├── useKeyboardInput.ts
-│   │           ├── useMidiInput.ts
-│   │           └── useSongPlayback.ts
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── index.css                # 🎨 Design tokens & themes
-├── public/                      # Static assets
-├── package.json
-├── vite.config.ts
-└── tsconfig.json
+src/
+├── data/               song library (10 built-in pieces)
+├── lib/                 audio engine (multi-instrument), keyboard mapping,
+│                        key geometry, song builder, MIDI file import/export,
+│                        imported-song + practice-progress persistence
+├── hooks/               app-level hooks (theme)
+├── features/piano/       the piano itself
+│   ├── PianoStage.tsx      orchestrator: owns audio + input + playback state
+│   ├── PianoKeyboard.tsx / PianoKey.tsx   the DOM keybed
+│   ├── NoteLane.tsx         canvas layer: falling notes, glow, particles
+│   ├── TopBar.tsx / SongPicker.tsx / SongStyleToggle.tsx /
+│   │   MidiImportButton.tsx / RecordControl.tsx / InstrumentPicker.tsx /
+│   │   MetronomeControl.tsx / VolumeControl.tsx / SustainBadge.tsx /
+│   │   NoteNamesToggle.tsx / LoopControl.tsx / KeyboardHelpOverlay.tsx
+│   ├── engine/                canvas particle-system math (pure functions)
+│   └── hooks/                  keyboard input, MIDI input (notes + CC64
+│                                sustain), recording, metronome scheduler,
+│                                sustain pedal, Wait/Scroll/Loop playback
+│                                state machine (shared chord-group engine)
 ```
 
----
+## Stack
 
-## 🛠️ Tech Stack
+React 19 + TypeScript + Vite, Tailwind CSS v4 (design tokens in
+`src/index.css`), [`smplr`](https://github.com/danigb/smplr) for the sampled
+instruments (grand piano, electric piano, organ), the browser's native Web
+Audio API for the metronome click and Web MIDI API for hardware input,
+[`@tonejs/midi`](https://github.com/Tonejs/Midi) for both directions of MIDI
+file conversion (import and recording export), `localStorage` for imported
+songs and practice progress. Falling notes, the glow trail, and the particle
+bursts are hand-rolled on a `<canvas>` — no charting or animation library.
 
-| Technology | Purpose | Icon |
-| ------------ | --------- | ------ |
-| [React 19](https://react.dev/) | UI Framework | ⚛️ |
-| [TypeScript](https://www.typescriptlang.org/) | Type Safety | 📘 |
-| [Vite](https://vitejs.dev/) | Build Tool & Dev Server | ⚡ |
-| [Tailwind CSS v4](https://tailwindcss.com/) | Styling & Design Tokens | 🎨 |
-| [smplr](https://github.com/danigb/smplr) | Sampled Piano Audio | 🎹 |
-| [@tonejs/midi](https://github.com/Tonejs/Midi) | MIDI File Parsing | 🎼 |
-| [Web MIDI API](https://developer.mozilla.org/en-US/docs/Web/API/Web_MIDI_API) | Hardware MIDI Input | 🔌 |
-| [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) | Particle Effects & Animations | 🎬 |
-| [oxlint](https://oxc-project.github.io/) | Linting | 🔍 |
+Note on `@tonejs/midi`: it hasn't had a release in a few years, but it
+remains the de facto standard for this exact task in the JS ecosystem, has
+no maintained successor, and parses/writes a binary file format (MIDI) that
+is itself decades-stable — unlike a UI library, there's little here that
+would need frequent updates.
 
----
+## What's next
 
-## 🎨 Design System
-
-Nocturne uses a custom design token system with semantic color variables:
-
-```css
-/* Theme tokens */
---color-ember: #f2a65a;      /* Right hand - warm orange */
---color-violet: #7c6cf0;     /* Left hand - cool purple */
---color-base: #0a0912;       /* Dark background */
---color-surface: #131120;    /* Card surfaces */
-```
-
-**Typography:**
-
-- Display: Fraunces (serif)
-- Body: Manrope (sans-serif)
-- Code: IBM Plex Mono
-
----
-
-## 🗺️ Roadmap
-
-Future enhancements:
-
-- [ ] 🎤 Record & export your playing
-- [ ] ⏱️ Built-in metronome
-- [ ] 🎵 Additional instrument sounds
-- [ ] 💾 Persist imported songs across sessions
-- [ ] 📊 Practice progress tracking
-- [ ] 🎓 Guided lessons with scoring
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-<p align="center">
-  Made with ❤️ and 🎹
-</p>
+A few natural directions from here: a duet/ensemble mode using more than two
+simultaneous parts, exporting a Scroll Mode session as a shareable replay,
+and richer two-hand arrangements for more of the built-in songs.

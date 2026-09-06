@@ -5,6 +5,10 @@ interface UseSongPlaybackParams {
   song: Song
   enabled: boolean
   style: SongPlayStyle
+  /** Loops back to loopStart once loopEnd's group clears (hit or, in Scroll Mode, missed). */
+  loopEnabled: boolean
+  loopStart: number
+  loopEnd: number
 }
 
 /** All notes that start on the same beat — a two-hand chord must clear together. */
@@ -46,7 +50,7 @@ const SCROLL_HIT_WINDOW_SEC = 0.3
  * elapsedRef is a ref (not state) since it updates every animation frame and
  * only the canvas needs to read it.
  */
-export function useSongPlayback({ song, enabled, style }: UseSongPlaybackParams) {
+export function useSongPlayback({ song, enabled, style, loopEnabled, loopStart, loopEnd }: UseSongPlaybackParams) {
   const secondsPerBeat = 60 / song.bpm
 
   // Sorted once so simultaneous (two-hand) notes end up adjacent for grouping,
@@ -75,39 +79,55 @@ export function useSongPlayback({ song, enabled, style }: UseSongPlaybackParams)
   const [hitCount, setHitCount] = useState(0)
   const [missCount, setMissCount] = useState(0)
 
-  // Restart playback when the song, style, or enabled state changes. The
-  // state reset runs synchronously during render (React's documented
-  // pattern for resetting state from a prop change — no extra render pass).
-  const resetKey = `${song.id}:${enabled}:${style}`
+  // Restart playback when the song, style, or enabled state changes — and
+  // also when the loop range itself changes, jumping straight to loopStart
+  // rather than requiring one full pass from the beginning first. The state
+  // reset runs synchronously during render (React's documented pattern for
+  // resetting state from a prop change — no extra render pass).
+  const resetKey = `${song.id}:${enabled}:${style}:${loopEnabled ? `${loopStart}-${loopEnd}` : "no-loop"}`
   const [prevResetKey, setPrevResetKey] = useState(resetKey)
+  const startIndex = loopEnabled ? Math.min(loopStart, Math.max(groups.length - 1, 0)) : 0
   if (prevResetKey !== resetKey) {
     setPrevResetKey(resetKey)
-    setPlayedCount(0)
+    const playedSoFar = groups.slice(0, startIndex).reduce((sum, g) => sum + g.events.length, 0)
+    setPlayedCount(playedSoFar)
     setIsComplete(false)
     setHitCount(0)
     setMissCount(0)
-    setActiveMidis(new Set(groups[0]?.events.map((e) => e.midi) ?? []))
+    setActiveMidis(new Set(groups[startIndex]?.events.map((e) => e.midi) ?? []))
   }
 
   // The hot-path refs can't be written during render, so they're reset in a
   // small effect keyed to the same condition.
   useEffect(() => {
-    elapsedRef.current = 0
-    groupIndexRef.current = 0
+    groupIndexRef.current = startIndex
+    elapsedRef.current = groups[startIndex]?.startSec ?? 0
     satisfiedRef.current = new Set()
     lastFrameRef.current = null
-  }, [resetKey])
+    // startIndex intentionally excluded: it's derived from resetKey's own
+    // inputs, so re-including it here would re-run this for every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetKey, groups])
 
   /** Shared by "chord fully hit" and "chord expired" — moves to the next group. */
   const advanceGroup = useCallback(() => {
-    const nextIndex = groupIndexRef.current + 1
-    groupIndexRef.current = nextIndex
+    const clampedLoopEnd = Math.min(loopEnd, groups.length - 1)
+    const atLoopEnd = loopEnabled && groupIndexRef.current === clampedLoopEnd
+
+    if (atLoopEnd) {
+      groupIndexRef.current = loopStart
+      elapsedRef.current = groups[loopStart]?.startSec ?? 0
+      lastFrameRef.current = null // avoid a time jump on the next frame
+    } else {
+      groupIndexRef.current += 1
+    }
+
     satisfiedRef.current = new Set()
-    const playedSoFar = groups.slice(0, nextIndex).reduce((sum, g) => sum + g.events.length, 0)
+    const playedSoFar = groups.slice(0, groupIndexRef.current).reduce((sum, g) => sum + g.events.length, 0)
     setPlayedCount(playedSoFar)
-    setActiveMidis(new Set(groups[nextIndex]?.events.map((e) => e.midi) ?? []))
-    if (nextIndex >= groups.length) setIsComplete(true)
-  }, [groups])
+    setActiveMidis(new Set(groups[groupIndexRef.current]?.events.map((e) => e.midi) ?? []))
+    if (!atLoopEnd && groupIndexRef.current >= groups.length) setIsComplete(true)
+  }, [groups, loopEnabled, loopStart, loopEnd])
 
   useEffect(() => {
     if (!enabled) return
@@ -185,5 +205,6 @@ export function useSongPlayback({ song, enabled, style }: UseSongPlaybackParams)
     hitCount,
     missCount,
     accuracy,
+    groupCount: groups.length,
   }
 }

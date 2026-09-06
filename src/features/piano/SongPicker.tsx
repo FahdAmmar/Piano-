@@ -1,9 +1,11 @@
 import type { Song } from "../../types"
+import type { SongProgress } from "../../lib/practice-progress-storage"
 
 interface SongPickerProps {
   songs: Song[]
   selectedId: string
   onChange: (id: string) => void
+  progress?: Record<string, SongProgress>
 }
 
 const DIFFICULTY_LABEL = {
@@ -14,7 +16,7 @@ const DIFFICULTY_LABEL = {
   imported: "Your Imports",
 } as const
 
-export function SongPicker({ songs, selectedId, onChange }: SongPickerProps) {
+export function SongPicker({ songs, selectedId, onChange, progress }: SongPickerProps) {
   return (
     <select
       value={selectedId}
@@ -27,11 +29,20 @@ export function SongPicker({ songs, selectedId, onChange }: SongPickerProps) {
         if (songsInGroup.length === 0) return null
         return (
           <optgroup key={difficulty} label={DIFFICULTY_LABEL[difficulty]}>
-            {songsInGroup.map((song) => (
-              <option key={song.id} value={song.id}>
-                {song.title}
-              </option>
-            ))}
+            {songsInGroup.map((song) => {
+              const songProgress = progress?.[song.id]
+              const suffix = songProgress?.completed
+                ? songProgress.bestAccuracy !== null
+                  ? ` ✓ ${songProgress.bestAccuracy}%`
+                  : " ✓"
+                : ""
+              return (
+                <option key={song.id} value={song.id}>
+                  {song.title}
+                  {suffix}
+                </option>
+              )
+            })}
           </optgroup>
         )
       })}

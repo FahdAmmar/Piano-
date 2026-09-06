@@ -145,6 +145,22 @@ const ODE_TO_JOY_BASS: Step[] = [
   ["C", 3, 4], ["C", 3, 4], ["C", 3, 4], ["C", 3, 4],
 ]
 
+// Left-hand accompaniment for Mary Had a Little Lamb: one held bass note
+// per 4-beat phrase, under the melody already defined above.
+// prettier-ignore
+const MARY_HAD_A_LITTLE_LAMB_BASS: Step[] = [
+  ["C", 3, 4], ["C", 3, 4], ["F", 3, 4], ["G", 3, 4],
+  ["C", 3, 4], ["C", 3, 4], ["G", 3, 4], ["C", 3, 4],
+]
+
+// Left-hand accompaniment for Jingle Bells: the same simple I-I-I-V-IV-I-V-I
+// pattern under each half of the (repeated) melody.
+// prettier-ignore
+const JINGLE_BELLS_BASS: Step[] = [
+  ["C", 3, 4], ["C", 3, 4], ["C", 3, 4], ["G", 3, 4], ["F", 3, 4], ["C", 3, 4], ["G", 3, 4], ["C", 3, 4],
+  ["C", 3, 4], ["C", 3, 4], ["C", 3, 4], ["G", 3, 4], ["F", 3, 4], ["C", 3, 4], ["G", 3, 4], ["C", 3, 4],
+]
+
 export const SONGS: Song[] = [
   {
     id: "hot-cross-buns",
@@ -241,6 +257,22 @@ export const SONGS: Song[] = [
     bpm: 96,
     difficulty: "two-hands",
     events: [...buildEvents(ODE_TO_JOY, "right"), ...buildEvents(ODE_TO_JOY_BASS, "left")],
+  },
+  {
+    id: "mary-had-a-little-lamb-two-hands",
+    title: "Mary Had a Little Lamb (Two Hands)",
+    composer: "Traditional",
+    bpm: 100,
+    difficulty: "two-hands",
+    events: [...buildEvents(MARY_HAD_A_LITTLE_LAMB, "right"), ...buildEvents(MARY_HAD_A_LITTLE_LAMB_BASS, "left")],
+  },
+  {
+    id: "jingle-bells-two-hands",
+    title: "Jingle Bells (Two Hands)",
+    composer: "Traditional",
+    bpm: 120,
+    difficulty: "two-hands",
+    events: [...buildEvents(JINGLE_BELLS, "right"), ...buildEvents(JINGLE_BELLS_BASS, "left")],
   },
 ]
 
