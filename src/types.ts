@@ -26,5 +26,5 @@ export interface Song {
 }
 
 export type PlaybackMode = "free" | "song"
-export type SongPlayStyle = "wait" | "scroll"
+export type SongPlayStyle = "wait" | "auto"
 export type Theme = "dark" | "light"

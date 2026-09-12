@@ -1,6 +1,6 @@
 export interface SongProgress {
   completed: boolean
-  /** Best Scroll Mode accuracy achieved (0-100), or null if never scored. */
+  /** Best scored accuracy achieved (0-100), or null if never scored. */
   bestAccuracy: number | null
 }
 
@@ -27,7 +27,7 @@ function saveProgress(progress: ProgressMap): void {
   }
 }
 
-/** Marks a song as completed and, in Scroll Mode, keeps the best accuracy seen. */
+/** Marks a song as completed and keeps the best scored accuracy seen, if any. */
 export function recordCompletion(songId: string, accuracy: number | null): ProgressMap {
   const current = loadProgress()
   const existing = current[songId]

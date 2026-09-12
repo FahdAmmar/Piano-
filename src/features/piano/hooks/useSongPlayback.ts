@@ -5,10 +5,12 @@ interface UseSongPlaybackParams {
   song: Song
   enabled: boolean
   style: SongPlayStyle
-  /** Loops back to loopStart once loopEnd's group clears (hit or, in Scroll Mode, missed). */
+  /** Loops back to loopStart once loopEnd's group clears (hit in Wait Mode, played in Auto Mode). */
   loopEnabled: boolean
   loopStart: number
   loopEnd: number
+  /** Auto Mode only: fired the instant a group's notes reach their scheduled time. */
+  onAutoPlay?: (events: TimedNoteEvent[]) => void
 }
 
 /** All notes that start on the same beat — a two-hand chord must clear together. */
@@ -30,11 +32,6 @@ function groupByBeat(events: TimedNoteEvent[]): NoteGroup[] {
   return groups
 }
 
-// How far from a note's exact time (in seconds, either side) Scroll Mode
-// still counts a press as a hit. Generous enough to be a fair first taste of
-// real timing, not a precision rhythm-game window.
-const SCROLL_HIT_WINDOW_SEC = 0.3
-
 /**
  * Drives "Learn a Song" playback in one of two styles:
  *
@@ -42,15 +39,16 @@ const SCROLL_HIT_WINDOW_SEC = 0.3
  *   next unplayed group, so the falling block(s) stall at the strike line
  *   until every note in the group is pressed. Anyone can finish the piece
  *   regardless of timing skill.
- * - Scroll Mode: elapsed time runs in real time, unclamped. A note counts as
- *   hit only if pressed within SCROLL_HIT_WINDOW_SEC of its exact time;
- *   otherwise the group expires as a miss once that window closes. This is
- *   the real timing challenge once Wait Mode feels too easy.
+ * - Auto Mode: elapsed time runs in real time, unclamped, and the hook plays
+ *   the piece itself — the instant elapsed time reaches a group's scheduled
+ *   start, onAutoPlay fires for it and playback moves on. Since both the
+ *   falling block and the sound are driven off the same elapsed clock in the
+ *   same frame, they stay perfectly in sync.
  *
  * elapsedRef is a ref (not state) since it updates every animation frame and
  * only the canvas needs to read it.
  */
-export function useSongPlayback({ song, enabled, style, loopEnabled, loopStart, loopEnd }: UseSongPlaybackParams) {
+export function useSongPlayback({ song, enabled, style, loopEnabled, loopStart, loopEnd, onAutoPlay }: UseSongPlaybackParams) {
   const secondsPerBeat = 60 / song.bpm
 
   // Sorted once so simultaneous (two-hand) notes end up adjacent for grouping,
@@ -76,8 +74,6 @@ export function useSongPlayback({ song, enabled, style, loopEnabled, loopStart, 
   const [playedCount, setPlayedCount] = useState(0)
   const [activeMidis, setActiveMidis] = useState<ReadonlySet<number>>(new Set())
   const [isComplete, setIsComplete] = useState(false)
-  const [hitCount, setHitCount] = useState(0)
-  const [missCount, setMissCount] = useState(0)
 
   // Restart playback when the song, style, or enabled state changes — and
   // also when the loop range itself changes, jumping straight to loopStart
@@ -92,8 +88,6 @@ export function useSongPlayback({ song, enabled, style, loopEnabled, loopStart, 
     const playedSoFar = groups.slice(0, startIndex).reduce((sum, g) => sum + g.events.length, 0)
     setPlayedCount(playedSoFar)
     setIsComplete(false)
-    setHitCount(0)
-    setMissCount(0)
     setActiveMidis(new Set(groups[startIndex]?.events.map((e) => e.midi) ?? []))
   }
 
@@ -144,9 +138,8 @@ export function useSongPlayback({ song, enabled, style, loopEnabled, loopStart, 
         } else {
           elapsedRef.current += deltaSec
           const pending = groups[groupIndexRef.current]
-          if (pending && elapsedRef.current > pending.startSec + SCROLL_HIT_WINDOW_SEC) {
-            const missed = pending.events.filter((e) => !satisfiedRef.current.has(e.midi)).length
-            if (missed > 0) setMissCount((c) => c + missed)
+          if (pending && elapsedRef.current >= pending.startSec) {
+            onAutoPlay?.(pending.events)
             advanceGroup()
           }
         }
@@ -157,28 +150,26 @@ export function useSongPlayback({ song, enabled, style, loopEnabled, loopStart, 
 
     frameId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frameId)
-  }, [enabled, groups, style, advanceGroup])
+  }, [enabled, groups, style, advanceGroup, onAutoPlay])
 
   /**
-   * Call when the user plays a note. Returns the matched event (so the
-   * caller can use its `hand` for the ignition color) or null if the note
-   * wasn't part of the currently pending group (or, in Scroll Mode, arrived
-   * outside its hit window).
+   * Call when the user plays a note in Wait Mode. Returns the matched event
+   * (so the caller can use its `hand` for the ignition color), or null if
+   * the note wasn't part of the currently pending group. In Auto Mode the
+   * hook already advances itself, so this is a no-op — presses are free
+   * play and don't affect the song.
    */
   const registerNotePress = useCallback(
     (midi: number): TimedNoteEvent | null => {
+      if (style === "auto") return null
+
       const currentGroup = groups[groupIndexRef.current]
       if (!currentGroup) return null
 
       const match = currentGroup.events.find((e) => e.midi === midi)
       if (!match || satisfiedRef.current.has(midi)) return null
 
-      if (style === "scroll" && Math.abs(elapsedRef.current - currentGroup.startSec) > SCROLL_HIT_WINDOW_SEC) {
-        return null // outside the timing window — not a valid hit
-      }
-
       satisfiedRef.current.add(midi)
-      if (style === "scroll") setHitCount((c) => c + 1)
 
       if (satisfiedRef.current.size < currentGroup.events.length) {
         // Chord not fully cleared yet — stay on this group, just narrow the highlight.
@@ -186,14 +177,12 @@ export function useSongPlayback({ song, enabled, style, loopEnabled, loopStart, 
         return match
       }
 
-      if (style === "wait") lastFrameRef.current = null // avoid a time jump on the next frame
+      lastFrameRef.current = null // avoid a time jump on the next frame
       advanceGroup()
       return match
     },
     [groups, style, advanceGroup],
   )
-
-  const accuracy = hitCount + missCount > 0 ? Math.round((hitCount / (hitCount + missCount)) * 100) : null
 
   return {
     timedEvents,
@@ -202,9 +191,6 @@ export function useSongPlayback({ song, enabled, style, loopEnabled, loopStart, 
     activeMidis,
     isComplete,
     registerNotePress,
-    hitCount,
-    missCount,
-    accuracy,
     groupCount: groups.length,
   }
 }

@@ -7,7 +7,7 @@ interface SongStyleToggleProps {
 
 const OPTIONS: { value: SongPlayStyle; label: string }[] = [
   { value: "wait", label: "Wait" },
-  { value: "scroll", label: "Scroll" },
+  { value: "auto", label: "Auto" },
 ]
 
 export function SongStyleToggle({ style, onChange }: SongStyleToggleProps) {

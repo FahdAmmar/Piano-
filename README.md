@@ -4,8 +4,9 @@ A playable piano in the browser: real sampled piano sound (plus electric
 piano and organ), a glowing key-press effect, and a "Learn a Song" mode
 where falling note blocks guide you through a piece. Practice at your own
 pace in **Wait Mode** — time waits for you to hit the right key, so anyone
-can complete a song — or take on **Scroll Mode** for a real, scored timing
-challenge once a piece feels easy. Record what you play and take it with
+can complete a song — or sit back in **Auto Mode**, where the app plays the
+piece itself, sound and falling notes in sync, as a demo of how it goes.
+Record what you play and take it with
 you as a `.mid` file; your progress and any imported songs are remembered
 for next time.
 
@@ -54,17 +55,17 @@ first time you play a note, so the tab needs an internet connection.
   (Für Elise — opening, with a black-key trill), and **Two Hands** (Twinkle
   Twinkle, Ode to Joy, Mary Had a Little Lamb, and Jingle Bells, each with a
   simple left-hand bass part — colored ember for right / violet for left).
-  Songs you've completed show a ✓ (and your best Scroll Mode accuracy, if
-  any) right in the list.
+  Songs you've completed show a ✓ right in the list.
 - **Import MIDI**: bring your own `.mid` file. Multi-track files map the
   first track to the right hand and the rest to the left; single-track files
   split by pitch around middle C. Imported songs are saved in the browser
   (`localStorage`) so they're still there next time you open the app; a
   "Clear imports" link appears once you have at least one.
-- **Wait / Scroll toggle**: Wait Mode pauses time at each note (or two-hand
-  chord) until you play it correctly. Scroll Mode runs in real time — a note
-  counts as a hit only within ~0.3s of its exact moment, and you get a live
-  accuracy score.
+- **Wait / Auto toggle**: Wait Mode pauses time at each note (or two-hand
+  chord) until you play it correctly. Auto Mode runs in real time and plays
+  the piece itself — each note's sound and its key-light fire the instant
+  it's due, so audio and the falling block stay in sync; you can still play
+  along freely, it just won't affect the song.
 - **Loop**: repeat just a note range (e.g. notes 5–12) instead of the whole
   piece — set the start/end and it loops there in either style, so you can
   drill a hard passage without replaying everything before it.
@@ -95,7 +96,7 @@ src/
 │   ├── engine/                canvas particle-system math (pure functions)
 │   └── hooks/                  keyboard input, MIDI input (notes + CC64
 │                                sustain), recording, metronome scheduler,
-│                                sustain pedal, Wait/Scroll/Loop playback
+│                                sustain pedal, Wait/Auto/Loop playback
 │                                state machine (shared chord-group engine)
 ```
 
@@ -119,5 +120,5 @@ would need frequent updates.
 ## What's next
 
 A few natural directions from here: a duet/ensemble mode using more than two
-simultaneous parts, exporting a Scroll Mode session as a shareable replay,
-and richer two-hand arrangements for more of the built-in songs.
+simultaneous parts, an adjustable Auto Mode playback speed, and richer
+two-hand arrangements for more of the built-in songs.

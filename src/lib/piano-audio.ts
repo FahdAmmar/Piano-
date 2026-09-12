@@ -60,9 +60,10 @@ export class PianoAudioEngine {
     if (this.context.state === "suspended") await this.context.resume()
   }
 
-  resumeAndPlay(midi: number, velocity = 90) {
+  /** duration (seconds) is optional — omit it for a held note released via release(). */
+  resumeAndPlay(midi: number, velocity = 90, duration?: number) {
     void this.resume()
-    this.instrument.start({ note: midi, velocity })
+    this.instrument.start({ note: midi, velocity, duration })
   }
 
   release(midi: number) {

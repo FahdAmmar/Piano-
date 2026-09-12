@@ -4,7 +4,7 @@ import { SONGS } from "../../data/songs"
 import { DEFAULT_BASE_MIDI, MAX_BASE_MIDI, MIN_BASE_MIDI } from "../../lib/keyboard-map"
 import { PianoAudioEngine } from "../../lib/piano-audio"
 import { midiToLabel } from "../../lib/note-utils"
-import type { Hand, PlaybackMode, Song, SongPlayStyle } from "../../types"
+import type { Hand, PlaybackMode, Song, SongPlayStyle, TimedNoteEvent } from "../../types"
 import { useKeyboardInput } from "./hooks/useKeyboardInput"
 import { useMidiInput } from "./hooks/useMidiInput"
 import { useSongPlayback } from "./hooks/useSongPlayback"
@@ -15,6 +15,9 @@ import { SongPicker } from "./SongPicker"
 import { SongStyleToggle } from "./SongStyleToggle"
 
 const PIXELS_PER_SECOND = 140
+// Fixed velocity for Auto Mode's self-played notes — a human performance
+// varies velocity per note, but a flat mezzo-forte reads cleanly for a demo.
+const AUTO_PLAY_VELOCITY = 90
 
 type LoadState = "loading" | "ready" | "error"
 
@@ -25,6 +28,7 @@ interface PianoStageProps {
 export function PianoStage({ mode }: PianoStageProps) {
   const audioEngineRef = useRef<PianoAudioEngine | null>(null)
   const noteLaneRef = useRef<NoteLaneHandle>(null)
+  const autoNoteTimersRef = useRef<number[]>([])
   const [loadState, setLoadState] = useState<LoadState>("loading")
   const [pressedMidi, setPressedMidi] = useState<ReadonlySet<number>>(new Set())
   const [baseMidi, setBaseMidi] = useState(DEFAULT_BASE_MIDI)
@@ -38,7 +42,42 @@ export function PianoStage({ mode }: PianoStageProps) {
 
   const allSongs = [...SONGS, ...importedSongs]
   const song = allSongs.find((s) => s.id === selectedSongId) ?? SONGS[0]
-  const songPlayback = useSongPlayback({ song, enabled: mode === "song", style: songStyle, loopEnabled, loopStart, loopEnd })
+
+  // Auto Mode: sound and key-light fire the instant a note is due, off the
+  // same elapsed clock that drives the falling block, so they stay in sync.
+  // Release timers are tracked so a song/style switch can cancel them.
+  const handleAutoPlay = useCallback((events: TimedNoteEvent[]) => {
+    setPressedMidi((prev) => {
+      const next = new Set(prev)
+      events.forEach((event) => next.add(event.midi))
+      return next
+    })
+
+    events.forEach((event) => {
+      audioEngineRef.current?.resumeAndPlay(event.midi, AUTO_PLAY_VELOCITY, event.durationSec)
+      noteLaneRef.current?.ignite(event.midi, event.hand)
+
+      const timerId = window.setTimeout(() => {
+        setPressedMidi((prev) => {
+          if (!prev.has(event.midi)) return prev
+          const next = new Set(prev)
+          next.delete(event.midi)
+          return next
+        })
+      }, event.durationSec * 1000)
+      autoNoteTimersRef.current.push(timerId)
+    })
+  }, [])
+
+  const songPlayback = useSongPlayback({
+    song,
+    enabled: mode === "song",
+    style: songStyle,
+    loopEnabled,
+    loopStart,
+    loopEnd,
+    onAutoPlay: handleAutoPlay,
+  })
 
   const handleSongImported = useCallback((imported: Song) => {
     setImportedSongs((prev) => [...prev, imported])
@@ -59,19 +98,25 @@ export function PianoStage({ mode }: PianoStageProps) {
     }
   }, [])
 
-  // Reset the pressed-keys highlight synchronously when the mode changes,
-  // instead of in an effect, so there's no extra render/flicker in between.
-  const [prevMode, setPrevMode] = useState(mode)
-  if (prevMode !== mode) {
-    setPrevMode(mode)
+  // Reset the pressed-keys highlight synchronously when mode or song style
+  // changes, instead of in an effect, so there's no extra render/flicker in
+  // between.
+  const resetTrigger = `${mode}:${songStyle}`
+  const [prevResetTrigger, setPrevResetTrigger] = useState(resetTrigger)
+  if (prevResetTrigger !== resetTrigger) {
+    setPrevResetTrigger(resetTrigger)
     setPressedMidi(new Set())
   }
 
-  // Switching modes mid-note would otherwise leave a note stuck ringing —
-  // this is a real side effect (talking to the AudioContext), so it stays here.
+  // Switching modes or song style mid-note would otherwise leave a note stuck
+  // ringing, or a key glowing after its Auto Mode release timer was
+  // cancelled — this is a real side effect (talking to the AudioContext), so
+  // it stays here.
   useEffect(() => {
     audioEngineRef.current?.stopAll()
-  }, [mode])
+    autoNoteTimersRef.current.forEach((id) => window.clearTimeout(id))
+    autoNoteTimersRef.current = []
+  }, [mode, songStyle])
 
   const handleNoteOn = useCallback(
     (midi: number, inputHand: Hand = "right", velocity = 90) => {
@@ -137,9 +182,7 @@ export function PianoStage({ mode }: PianoStageProps) {
 
       {mode === "song" && songPlayback.isComplete && (
         <div className="absolute inset-x-0 top-4 z-10 mx-auto w-fit rounded-full border border-line bg-surface px-4 py-1.5 text-sm text-ink shadow-lg">
-          {songStyle === "wait"
-            ? "Nicely played — that's the whole piece."
-            : `Complete — ${songPlayback.accuracy}% accuracy (${songPlayback.hitCount}/${songPlayback.hitCount + songPlayback.missCount} notes)`}
+          {songStyle === "wait" ? "Nicely played — that's the whole piece." : "That's the whole piece."}
         </div>
       )}
 
@@ -163,7 +206,6 @@ export function PianoStage({ mode }: PianoStageProps) {
           </div>
           <span className="shrink-0">
             {songPlayback.playedCount} / {songPlayback.timedEvents.length} notes
-            {songStyle === "scroll" && songPlayback.accuracy !== null ? ` · ${songPlayback.accuracy}% accuracy` : ""}
             {nextLabels ? ` · next: ${nextLabels}` : ""}
           </span>
         </div>
